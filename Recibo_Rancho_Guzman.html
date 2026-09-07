@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recibo Express - Rancho Guzmán</title>
+<style>
+    /* ESTILOS GENERALES Y COLORES DE TU MARCA */
+    :root { 
+        --azul: #1A365D; 
+        --amarillo: #E2A021; 
+        --rojo: #D9383A; 
+        --gris: #f8f9fa; 
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    body { background-color: #eef2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+    /* CONTENEDOR PRINCIPAL CONTROLES + RECIBO */
+    .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 900px; }
+
+    /* PANEL DE CONTROL (ENTRADA DE DATOS) */
+    #panel-control { 
+        background: white; 
+        padding: 20px; 
+        border-radius: 12px; 
+        flex: 1 1 350px; 
+        max-width: 420px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+        height: fit-content;
+    }
+    #panel-control h3 { 
+        text-align: center; 
+        color: var(--azul); 
+        margin-bottom: 15px; 
+        border-bottom: 3px solid var(--amarillo); 
+        padding-bottom: 8px; 
+        font-size: 18px;
+    }
+    .grupo { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; font-weight: bold; color: #4a5568; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { 
+        width: 100%; 
+        padding: 9px 12px; 
+        border: 1px solid #cbd5e0; 
+        border-radius: 6px; 
+        font-size: 14px; 
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+        border-color: var(--azul);
+        box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+    }
+    .fila { display: flex; gap: 10px; }
+    .fila .grupo { flex: 1; }
+    button { 
+        width: 100%; 
+        padding: 12px; 
+        background-color: var(--azul); 
+        color: white; 
+        border: none; 
+        border-radius: 6px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        margin-top: 15px; 
+        font-size: 15px; 
+        transition: background 0.2s;
+    }
+    button:hover { background-color: #0f2341; }
+
+    /* EL RECIBO (VISTA PREVIA) */
+    #recibo { 
+        background: white; 
+        flex: 1 1 350px;
+        max-width: 420px; 
+        padding: 25px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+        border-top: 8px solid var(--azul); 
+        position: relative; 
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    /* Encabezado con tu logo/marca */
+    .header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #cbd5e0; padding-bottom: 12px; }
+    .logo-txt { font-size: 24px; font-weight: 900; color: var(--azul); text-transform: uppercase; letter-spacing: -0.5px; margin-bottom: 2px; }
+    .slogan-txt { background-color: var(--amarillo); color: #fff; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; display: inline-block; letter-spacing: 0.5px; }
+    .titulo-recibo { margin-top: 12px; font-weight: bold; font-size: 15px; text-transform: uppercase; color: #2d3748; letter-spacing: 0.5px; }
+    .info-meta { font-size: 12px; color: #718096; margin-top: 4px; }
+
+    /* Secciones de datos */
+    .seccion-titulo { 
+        font-size: 11px; 
+        text-transform: uppercase; 
+        font-weight: bold; 
+        color: var(--azul); 
+        background: #edf2f7; 
+        padding: 4px 8px; 
+        margin: 14px 0 8px 0; 
+        border-left: 4px solid var(--amarillo); 
+        border-radius: 0 4px 4px 0;
+        letter-spacing: 0.5px;
+    }
+    .dato { font-size: 13px; margin-bottom: 5px; display: flex; justify-content: space-between; border-bottom: 1px dotted #edf2f7; padding-bottom: 3px; }
+    .dato span { color: #718096; }
+    .dato strong { color: #1a202c; text-align: right; }
+
+    /* Tabla de pagos resumida */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    th { background-color: var(--azul); color: white; text-align: left; padding: 6px 8px; font-weight: 600; font-size: 12px; border-radius: 4px 4px 0 0; }
+    td { padding: 6px 8px; border-bottom: 1px solid #edf2f7; }
+    .total { font-weight: bold; background-color: #f7fafc; }
+    .pendiente { color: var(--rojo); font-weight: bold; }
+
+    /* Etiqueta de estado dinámica */
+    #estado-badge { width: 100%; text-align: center; padding: 8px; margin-top: 15px; border-radius: 6px; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .abonado { background-color: #FEFCBF; color: #744210; border: 1px solid #F6E05E; }
+    .pagado { background-color: #C6F6D5; color: #22543D; border: 1px solid #9AE6B4; }
+
+    .firmas { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; font-size: 11px; color: #718096; }
+    .linea { width: 130px; border-top: 1px solid #a0aec0; margin-bottom: 6px; }
+
+    /* ESTILOS DE IMPRESIÓN (OCULTA EL FORMULARIO) */
+    @media print {
+        body { background: white; padding: 0; }
+        .container { display: block; }
+        #panel-control { display: none; }
+        #recibo { box-shadow: none; border: 1px solid #cbd5e0; max-width: 100%; width: 100%; border-top: 8px solid var(--azul); }
+    }
+</style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- PANEL DE CONTROL (IZQUIERDA/ARRIBA) -->
+        <div id="panel-control">
+            <h3>Datos del Recibo</h3>
+            
+            <div class="fila">
+                <div class="grupo"><label>No. Recibo</label><input type="text" id="in-folio" value="001" oninput="update()"></div>
+                <div class="grupo"><label>Fecha</label><input type="date" id="in-fecha" oninput="update()"></div>
+            </div>
+
+            <div class="grupo"><label>Cliente</label><input type="text" id="in-cliente" placeholder="Nombre completo" oninput="update()"></div>
+
+            <div class="fila">
+                <div class="grupo"><label>Entrada (Check-in)</label><input type="date" id="in-in" oninput="update()"></div>
+                <div class="grupo"><label>Salida (Check-out)</label><input type="date" id="in-out" oninput="update()"></div>
+            </div>
+
+            <div class="fila">
+                <div class="grupo"><label>Total Estadía ($)</label><input type="number" id="in-total" value="0" oninput="update()"></div>
+                <div class="grupo"><label>Monto Abonado ($)</label><input type="number" id="in-abono" value="0" oninput="update()"></div>
+            </div>
+
+            <div class="grupo">
+                <label>Método</label>
+                <select id="in-metodo" oninput="update()">
+                    <option>Efectivo</option>
+                    <option>Transferencia</option>
+                    <option>Tarjeta</option>
+                </select>
+            </div>
+
+            <button onclick="window.print()">Imprimir / Guardar PDF</button>
+        </div>
+
+        <!-- EL RECIBO (VISTA PREVIA) -->
+        <div id="recibo">
+            <div>
+                <div class="header">
+                    <div class="logo-txt">RANCHO GUZMÁN</div>
+                    <div class="slogan-txt">Disfruta en Familia</div>
+                    <div class="titulo-recibo">Comprobante de Compromiso</div>
+                    <div class="info-meta">No: <strong id="out-folio">001</strong> | Fecha: <span id="out-fecha">--/--/--</span></div>
+                </div>
+
+                <div class="seccion-titulo">Huésped</div>
+                <div class="dato"><span>Cliente:</span><strong id="out-cliente">---</strong></div>
+
+                <div class="seccion-titulo">Estadía</div>
+                <div class="fila">
+                    <div class="dato" style="flex:1;"><span>Entrada:</span><strong id="out-in">--/--/--</strong></div>
+                    <div class="dato" style="flex:1; margin-left: 10px;"><span>Salida:</span><strong id="out-out">--/--/--</strong></div>
+                </div>
+
+                <div class="seccion-titulo">Resumen de Pago</div>
+                <table>
+                    <thead><tr><th>Concepto</th><th style="text-align:right;">Monto</th></tr></thead>
+                    <tbody>
+                        <tr><td>Total Estadía</td><td style="text-align:right;">$ <span id="out-total">0.00</span></td></tr>
+                        <tr><td>Abono Recibido</td><td style="text-align:right;">$ <span id="out-abono">0.00</span></td></tr>
+                        <tr class="total"><td>Saldo Pendiente</td><td style="text-align:right;" class="pendiente">$ <span id="out-restante">0.00</span></td></tr>
+                    </tbody>
+                </table>
+                <div class="dato" style="margin-top:8px; font-size:12px;"><span>Método de pago:</span><strong id="out-metodo">Efectivo</strong></div>
+
+                <div id="estado-badge" class="abonado">Estado: Abonado (Pendiente)</div>
+            </div>
+
+            <div class="firmas">
+                <div><div class="linea"></div>Rancho Guzmán</div>
+                <div><div class="linea"></div>Firma Cliente</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Pone la fecha de hoy por defecto
+    document.getElementById('in-fecha').valueAsDate = new Date();
+
+    // Función principal que actualiza todo
+    function update() {
+        // Captura datos
+        const folio = document.getElementById('in-folio').value;
+        const fecha = document.getElementById('in-fecha').value;
+        const cliente = document.getElementById('in-cliente').value;
+        const cin = document.getElementById('in-in').value;
+        const cout = document.getElementById('in-out').value;
+        const total = parseFloat(document.getElementById('in-total').value) || 0;
+        const abono = parseFloat(document.getElementById('in-abono').value) || 0;
+        const metodo = document.getElementById('in-metodo').value;
+
+        // Cálculos
+        const restante = total - abono;
+
+        // Formateo de fechas rápido (DD/MM/AAAA)
+        const fmtF = (f) => f ? f.split('-').reverse().join('/') : '--/--/--';
+
+        // Actualiza el recibo
+        document.getElementById('out-folio').innerText = folio;
+        document.getElementById('out-fecha').innerText = fmtF(fecha);
+        document.getElementById('out-cliente').innerText = cliente || '---';
+        document.getElementById('out-in').innerText = fmtF(cin);
+        document.getElementById('out-out').innerText = fmtF(cout);
+        
+        // Formateo de números (con comas y decimales)
+        const fmtN = (n) => n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('out-total').innerText = fmtN(total);
+        document.getElementById('out-abono').innerText = fmtN(abono);
+        document.getElementById('out-restante').innerText = fmtN(restante > 0 ? restante : 0);
+        document.getElementById('out-metodo').innerText = metodo;
+
+        // Actualiza el badge de estado
+        const badge = document.getElementById('estado-badge');
+        if (total > 0 && abono >= total) {
+            badge.innerText = "Estado: Pagado Completo";
+            badge.className = "pagado";
+        } else {
+            badge.innerText = "Estado: Abonado (Pendiente)";
+            badge.className = "abonado";
+        }
+    }
+
+    // Ejecuta una vez al cargar
+    update();
+</script>
+
+</body>
+</html>
